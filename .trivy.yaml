@@ -1,0 +1,9 @@
+severity: CRITICAL,HIGH,MEDIUM,LOW
+format: sarif
+exit-code: 1
+vulnerability:
+  type:
+    - os
+    - library
+ignore-unfixed: false
+timeout: 5m0s

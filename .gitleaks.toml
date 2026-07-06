@@ -1,0 +1,17 @@
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Global allowlist"
+paths = [
+  ".gitleaks.toml",
+  ".trivy.yaml",
+  "sonar-project.properties",
+  "README.md"
+]
+
+[[rules]]
+id = "custom-token"
+description = "Detect custom API tokens"
+regex = '''(?i)(?:app|api|secret)_token['\"\s]*[:=]['\"\s]*([a-z0-9\-_]{20,})'''
+tags = ["custom", "api-token"]

@@ -1,0 +1,230 @@
+name: CI Security Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  IMAGE_NAME: employee-api
+  AWS_REGION: us-east-1
+  DD_URL: ${{ secrets.DD_URL }}
+  DD_API_KEY: ${{ secrets.DD_API_KEY }}
+  DD_PRODUCT_ID: ${{ secrets.DD_PRODUCT_ID || 1 }}
+  DD_ENGAGEMENT_ID: ${{ secrets.DD_ENGAGEMENT_ID || 1 }}
+
+jobs:
+  security-scan:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # ─────────────────────────────────────────────
+      # STAGE 1: Gitleaks — Secret Detection
+      # ─────────────────────────────────────────────
+      - name: Gitleaks — Secret Detection
+        uses: gitleaks/gitleaks-action@v2
+        continue-on-error: true
+        with:
+          config-path: .gitleaks.toml
+          report-path: reports/gitleaks-report.json
+
+      - name: Upload Gitleaks Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: gitleaks-report
+          path: reports/gitleaks-report.json
+          if-no-files-found: ignore
+
+      # ─────────────────────────────────────────────
+      # STAGE 2: Bandit — Python SAST
+      # ─────────────────────────────────────────────
+      - name: Bandit — Python SAST
+        run: |
+          pip install bandit
+          mkdir -p reports
+          bandit -r app/ -f json -o reports/bandit-report.json --exit-zero
+
+      - name: Upload Bandit Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: bandit-report
+          path: reports/bandit-report.json
+          if-no-files-found: ignore
+
+      # ─────────────────────────────────────────────
+      # STAGE 3: Trivy FS — Dependency & Filesystem
+      # ─────────────────────────────────────────────
+      - name: Trivy — Filesystem Scan
+        uses: aquasecurity/trivy-action@0.19.0
+        continue-on-error: true
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,secret,misconfig
+          severity: CRITICAL,HIGH,MEDIUM,LOW
+          format: sarif
+          output: reports/trivy-fs-report.sarif
+
+      - name: Trivy — JSON Report (for DefectDojo)
+        uses: aquasecurity/trivy-action@0.19.0
+        continue-on-error: true
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln
+          severity: CRITICAL,HIGH,MEDIUM,LOW
+          format: json
+          output: reports/trivy-fs-report.json
+
+      - name: Upload Trivy FS Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-fs-report
+          path: |
+            reports/trivy-fs-report.sarif
+            reports/trivy-fs-report.json
+          if-no-files-found: ignore
+
+      # ─────────────────────────────────────────────
+      # STAGE 4: Docker Build
+      # ─────────────────────────────────────────────
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: app/
+          load: true
+          tags: ${{ env.IMAGE_NAME }}:${{ github.sha }},${{ env.IMAGE_NAME }}:latest
+
+      # ─────────────────────────────────────────────
+      # STAGE 5: Trivy Image — Container Scan
+      # ─────────────────────────────────────────────
+      - name: Trivy — Container Image Scan
+        uses: aquasecurity/trivy-action@0.19.0
+        continue-on-error: true
+        with:
+          scan-type: image
+          image-ref: ${{ env.IMAGE_NAME }}:${{ github.sha }}
+          severity: CRITICAL,HIGH,MEDIUM,LOW
+          format: sarif
+          output: reports/trivy-image-report.sarif
+
+      - name: Trivy — Image JSON Report (for DefectDojo)
+        uses: aquasecurity/trivy-action@0.19.0
+        continue-on-error: true
+        with:
+          scan-type: image
+          image-ref: ${{ env.IMAGE_NAME }}:${{ github.sha }}
+          severity: CRITICAL,HIGH,MEDIUM,LOW
+          format: json
+          output: reports/trivy-image-report.json
+
+      - name: Upload Trivy Image Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-image-report
+          path: |
+            reports/trivy-image-report.sarif
+            reports/trivy-image-report.json
+          if-no-files-found: ignore
+
+      # ─────────────────────────────────────────────
+      # STAGE 6: SBOM Generation (Syft)
+      # ─────────────────────────────────────────────
+      - name: Syft — SBOM Generation
+        uses: anchore/sbom-action@v0
+        with:
+          image: ${{ env.IMAGE_NAME }}:${{ github.sha }}
+          format: cyclonedx-json
+          artifact-name: sbom-cyclonedx.json
+
+      # ─────────────────────────────────────────────
+      # STAGE 7: SonarQube Scan (if configured)
+      # ─────────────────────────────────────────────
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v2
+        continue-on-error: true
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        with:
+          projectBaseDir: .
+          args: >
+            -Dsonar.projectKey=employee-api
+            -Dsonar.sources=app/
+            -Dsonar.python.bandit.reportPaths=reports/bandit-report.json
+            -Dsonar.exclusions=**/tests/**,**/__pycache__/**,**/.env*
+
+      # ─────────────────────────────────────────────
+      # STAGE 8: Upload to DefectDojo
+      # ─────────────────────────────────────────────
+      - name: Upload Results to DefectDojo
+        if: env.DD_URL != '' && env.DD_API_KEY != ''
+        run: |
+          upload() {
+            local scan_type="$1" file="$2"
+            if [ ! -f "$file" ]; then echo "Skip $file — not found"; return; fi
+            curl -s -X POST "$DD_URL/api/v2/import-scan/" \
+              -H "Authorization: Token $DD_API_KEY" \
+              -F "product=$DD_PRODUCT_ID" \
+              -F "engagement=$DD_ENGAGEMENT_ID" \
+              -F "scan_type=$scan_type" \
+              -F "file=@$file" \
+              -F "active=true" \
+              -F "verified=false"
+          }
+          upload "Gitleaks Scan" "reports/gitleaks-report.json"
+          upload "Bandit Scan" "reports/bandit-report.json"
+          upload "Trivy Scan" "reports/trivy-fs-report.json"
+          upload "Trivy Scan" "reports/trivy-image-report.json"
+          upload "CycloneDX Scan" "reports/sbom-cyclonedx.json"
+        shell: bash
+
+      # ─────────────────────────────────────────────
+      # STAGE 9: Upload SARIF to GitHub Security Tab
+      # ─────────────────────────────────────────────
+      - name: Upload SARIF to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        continue-on-error: true
+        with:
+          sarif_file: reports/
+          category: trivy
+
+      # ─────────────────────────────────────────────
+      # STAGE 10: Summary
+      # ─────────────────────────────────────────────
+      - name: Build Summary
+        run: |
+          echo "## DevSecOps Pipeline Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Stage | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Gitleaks (Secrets) | ✅ |" >> $GITHUB_STEP_SUMMARY
+          echo "| Bandit (Python SAST) | ✅ |" >> $GITHUB_STEP_SUMMARY
+          echo "| Trivy FS (Dependencies) | ✅ |" >> $GITHUB_STEP_SUMMARY
+          echo "| Docker Build | ✅ |" >> $GITHUB_STEP_SUMMARY
+          echo "| Trivy Image (Container) | ✅ |" >> $GITHUB_STEP_SUMMARY
+          echo "| SBOM (Syft) | ✅ |" >> $GITHUB_STEP_SUMMARY
+          echo "| SonarQube | ⚡ (if configured) |" >> $GITHUB_STEP_SUMMARY
+          echo "| DefectDojo Upload | ⚡ (if configured) |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Reports are available as build artifacts above." >> $GITHUB_STEP_SUMMARY

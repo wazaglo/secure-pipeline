@@ -1,0 +1,188 @@
+version: '3.8'
+
+services:
+
+  postgres-ddojo:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: ${DD_POSTGRES_DB}
+      POSTGRES_USER: ${DD_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${DD_POSTGRES_PASSWORD}
+    volumes:
+      - postgres-ddojo-data:/var/lib/postgresql/data
+    networks:
+      - devsecops
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DD_POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis-ddojo:
+    image: redis:7-alpine
+    networks:
+      - devsecops
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  defectdojo-init:
+    image: defectdojo/defectdojo-django:2.28.1
+    command: ["bash", "-c", "echo 'Running initializer...' && python manage.py migrate && python manage.py createsuperuser --noinput --username ${DD_ADMIN_USER} --email ${DD_ADMIN_MAIL} 2>/dev/null || true && python manage.py initialize"]
+    environment:
+      DD_DATABASE_URL: ${DD_DATABASE_URL}
+      DD_SECRET_KEY: ${DD_SECRET_KEY}
+      DD_CREDENTIAL_AES_256_KEY: ${DD_CREDENTIAL_AES_256_KEY}
+      DD_ADMIN_USER: ${DD_ADMIN_USER}
+      DD_ADMIN_PASSWORD: ${DD_ADMIN_PASSWORD}
+      DD_ADMIN_MAIL: ${DD_ADMIN_MAIL}
+      DD_BASE_URL: ${DD_BASE_URL}
+      DD_ALLOWED_HOSTS: ${DD_ALLOWED_HOSTS}
+      DD_EMAIL_URL: ${DD_EMAIL_URL}
+      DD_CELERY_BROKER_URL: ${DD_CELERY_BROKER_URL}
+      DD_CELERY_RESULT_BACKEND: ${DD_CELERY_RESULT_BACKEND}
+      DD_DEBUG: ${DD_DEBUG}
+      DD_LOGIN_REDIRECT_URL: ${DD_LOGIN_REDIRECT_URL}
+    depends_on:
+      postgres-ddojo:
+        condition: service_healthy
+      redis-ddojo:
+        condition: service_healthy
+    networks:
+      - devsecops
+    restart: "no"
+
+  defectdojo:
+    image: defectdojo/defectdojo-django:2.28.1
+    command: ["bash", "-c", "gunicorn --bind 0.0.0.0:8080 --workers 3 --timeout 180 --access-logfile - --error-logfile - defectdojo.wsgi:application"]
+    environment:
+      DD_DATABASE_URL: ${DD_DATABASE_URL}
+      DD_SECRET_KEY: ${DD_SECRET_KEY}
+      DD_CREDENTIAL_AES_256_KEY: ${DD_CREDENTIAL_AES_256_KEY}
+      DD_ADMIN_USER: ${DD_ADMIN_USER}
+      DD_ADMIN_PASSWORD: ${DD_ADMIN_PASSWORD}
+      DD_BASE_URL: ${DD_BASE_URL}
+      DD_ALLOWED_HOSTS: ${DD_ALLOWED_HOSTS}
+      DD_EMAIL_URL: ${DD_EMAIL_URL}
+      DD_CELERY_BROKER_URL: ${DD_CELERY_BROKER_URL}
+      DD_CELERY_RESULT_BACKEND: ${DD_CELERY_RESULT_BACKEND}
+      DD_DEBUG: ${DD_DEBUG}
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres-ddojo:
+        condition: service_healthy
+      redis-ddojo:
+        condition: service_healthy
+      defectdojo-init:
+        condition: service_completed_successfully
+    networks:
+      - devsecops
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/v2/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  celeryworker-ddojo:
+    image: defectdojo/defectdojo-django:2.28.1
+    command: ["celery", "-A", "defectdojo.celery:app", "worker", "--loglevel=info", "--concurrency=4"]
+    environment:
+      DD_DATABASE_URL: ${DD_DATABASE_URL}
+      DD_SECRET_KEY: ${DD_SECRET_KEY}
+      DD_CREDENTIAL_AES_256_KEY: ${DD_CREDENTIAL_AES_256_KEY}
+      DD_BASE_URL: ${DD_BASE_URL}
+      DD_ALLOWED_HOSTS: ${DD_ALLOWED_HOSTS}
+      DD_CELERY_BROKER_URL: ${DD_CELERY_BROKER_URL}
+      DD_CELERY_RESULT_BACKEND: ${DD_CELERY_RESULT_BACKEND}
+      DD_DEBUG: ${DD_DEBUG}
+    depends_on:
+      postgres-ddojo:
+        condition: service_healthy
+      redis-ddojo:
+        condition: service_healthy
+      defectdojo:
+        condition: service_healthy
+    networks:
+      - devsecops
+    restart: unless-stopped
+
+  celerybeat-ddojo:
+    image: defectdojo/defectdojo-django:2.28.1
+    command: ["celery", "-A", "defectdojo.celery:app", "beat", "--loglevel=info"]
+    environment:
+      DD_DATABASE_URL: ${DD_DATABASE_URL}
+      DD_SECRET_KEY: ${DD_SECRET_KEY}
+      DD_CREDENTIAL_AES_256_KEY: ${DD_CREDENTIAL_AES_256_KEY}
+      DD_BASE_URL: ${DD_BASE_URL}
+      DD_ALLOWED_HOSTS: ${DD_ALLOWED_HOSTS}
+      DD_CELERY_BROKER_URL: ${DD_CELERY_BROKER_URL}
+      DD_CELERY_RESULT_BACKEND: ${DD_CELERY_RESULT_BACKEND}
+      DD_DEBUG: ${DD_DEBUG}
+    depends_on:
+      postgres-ddojo:
+        condition: service_healthy
+      redis-ddojo:
+        condition: service_healthy
+      defectdojo:
+        condition: service_healthy
+    networks:
+      - devsecops
+    restart: unless-stopped
+
+  postgres-sonar:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: ${SONAR_POSTGRES_DB}
+      POSTGRES_USER: ${SONAR_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${SONAR_POSTGRES_PASSWORD}
+    volumes:
+      - postgres-sonar-data:/var/lib/postgresql/data
+    networks:
+      - devsecops
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${SONAR_POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  sonarqube:
+    image: sonarqube:10.3-community
+    environment:
+      SONAR_JDBC_URL: ${SONAR_JDBC_URL}
+      SONAR_JDBC_USERNAME: ${SONAR_POSTGRES_USER}
+      SONAR_JDBC_PASSWORD: ${SONAR_POSTGRES_PASSWORD}
+      SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: ${SONAR_ES_BOOTSTRAP_CHECKS_DISABLE}
+    ports:
+      - "9000:9000"
+    depends_on:
+      postgres-sonar:
+        condition: service_healthy
+    networks:
+      - devsecops
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/api/system/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+
+networks:
+  devsecops:
+    driver: bridge
+
+volumes:
+  postgres-ddojo-data:
+  postgres-sonar-data:

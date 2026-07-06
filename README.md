@@ -19,18 +19,9 @@ Push code → GitHub Actions CI → Gitleaks + Bandit + Trivy + Syft + SonarQube
 ```bash
 cd terraform
 
-# Create a tfvars file with your settings
-# (terraform.tfvars is in .gitignore — won't be committed)
-cat > terraform.tfvars << 'EOF'
-repo_url   = "https://github.com/wazaglo/secure-pipeline.git"
-public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC..."
-
-# Database credentials (change these)
-dd_db_user       = "ddojo"
-dd_db_password   = "ddojo-password"
-sonar_db_user    = "sonar"
-sonar_db_password = "sonar-password"
-EOF
+# Copy the example and edit with your values
+cp terraform.tfvars.example terraform.tfvars
+vim terraform.tfvars
 
 terraform init
 terraform apply
@@ -119,6 +110,7 @@ All reports are also saved as GitHub Actions artifacts.
 | File | Role |
 |------|------|
 | `terraform/` | Provisions EC2 with DefectDojo + SonarQube |
+| `terraform/terraform.tfvars.example` | Template for your variables (copy → edit → use) |
 | `.github/workflows/ci-security.yml` | CI pipeline — runs on push |
 | `.github/workflows/cd-deploy.yml` | Optional deploy to target |
 | `app/` | Flask API — the scan target |

@@ -1,0 +1,17 @@
+# ─── Required ───
+repo_url   = "https://github.com/wazaglo/secure-pipeline.git"
+public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC..."
+
+# ─── Database Credentials (optional - defaults below) ───
+# dd_db_user       = "ddojo"
+# dd_db_password   = "ddojo-password"
+# sonar_db_user    = "sonar"
+# sonar_db_password = "sonar-password"
+
+# ─── Admin Passwords (optional) ───
+# dd_admin_password   = "admin123"
+# sonar_admin_password = "admin"
+
+# ─── AWS (optional) ───
+# region        = "us-east-1"
+# instance_type = "t3.medium"

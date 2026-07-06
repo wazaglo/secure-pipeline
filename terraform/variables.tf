@@ -15,11 +15,11 @@ variable "public_key" {
 
 variable "project_name" {
   description = "Project name for resource tagging"
-  default     = "devsecops-security"
+  default     = "secure-pipeline"
 }
 
 variable "repo_url" {
-  description = "URL of the devsecops-security GitHub repo"
+  description = "URL of the GitHub repo"
   type        = string
 }
 

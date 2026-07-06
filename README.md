@@ -1,4 +1,6 @@
-# DevSecOps Security Toolchain
+# Secure Pipeline
+
+Author: **Wisdom Azaglo**
 
 GitHub Actions CI pipeline that runs security scanners on push and uploads results to DefectDojo + SonarQube running on AWS EC2 (provisioned via Terraform).
 
@@ -20,7 +22,7 @@ cd terraform
 # Create a tfvars file with your settings
 # (terraform.tfvars is in .gitignore — won't be committed)
 cat > terraform.tfvars << 'EOF'
-repo_url   = "https://github.com/YOUR_USER/devsecops-security.git"
+repo_url   = "https://github.com/wazaglo/secure-pipeline.git"
 public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC..."
 EOF
 
@@ -40,7 +42,7 @@ SSH into the EC2 and read the credentials file the bootstrap created:
 
 ```bash
 ssh -i /path/to/your-key.pem ubuntu@<PUBLIC_IP>
-cat /opt/defectdojo-creds.txt
+cat /opt/secure-pipeline/defectdojo-creds.txt
 ```
 
 This will show:
@@ -58,9 +60,9 @@ Go to your repo → **Settings → Secrets and variables → Actions → New rep
 | Secret | Value |
 |--------|-------|
 | `DD_URL` | `http://<EC2_PUBLIC_IP>:8080` (from terraform output) |
-| `DD_API_KEY` | From `/opt/defectdojo-creds.txt` on EC2 |
-| `DD_PRODUCT_ID` | `1` (from `/opt/defectdojo-creds.txt`) |
-| `DD_ENGAGEMENT_ID` | `1` (from `/opt/defectdojo-creds.txt`) |
+| `DD_API_KEY` | From `/opt/secure-pipeline/defectdojo-creds.txt` on EC2 |
+| `DD_PRODUCT_ID` | `1` (from file) |
+| `DD_ENGAGEMENT_ID` | `1` (from file) |
 | `SONAR_HOST_URL` | `http://<EC2_PUBLIC_IP>:9000` |
 | `SONAR_TOKEN` | Generate in SonarQube UI: Login → My Account → Security → Generate Tokens |
 

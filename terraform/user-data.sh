@@ -22,7 +22,7 @@ usermod -aG docker ubuntu
 
 echo "[$(date)] Docker installed: $(docker --version)"
 
-PROJECT_DIR="/opt/devsecops"
+PROJECT_DIR="/opt/secure-pipeline"
 
 mkdir -p /opt
 cd /opt

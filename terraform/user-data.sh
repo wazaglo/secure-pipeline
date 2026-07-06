@@ -34,11 +34,11 @@ echo "[$(date)] Repo cloned from ${repo_url}"
 cat > .env << 'ENVEOF'
 # ─── DefectDojo Database ───
 DD_POSTGRES_DB=defectdojo
-DD_POSTGRES_USER=ddojo
-DD_POSTGRES_PASSWORD=ddojo-password
+DD_POSTGRES_USER=${dd_db_user}
+DD_POSTGRES_PASSWORD=${dd_db_password}
 
 # ─── DefectDojo Django ───
-DD_DATABASE_URL=postgres://ddojo:ddojo-password@postgres-ddojo:5432/defectdojo
+DD_DATABASE_URL=postgres://${dd_db_user}:${dd_db_password}@postgres-ddojo:5432/defectdojo
 DD_SECRET_KEY=${dd_secret_key}
 DD_CREDENTIAL_AES_256_KEY=key1234567890123456789012345678901
 DD_ADMIN_USER=admin
@@ -54,8 +54,8 @@ DD_LOGIN_REDIRECT_URL=http://${public_ip}:8080/
 
 # ─── SonarQube Database ───
 SONAR_POSTGRES_DB=sonarqube
-SONAR_POSTGRES_USER=sonar
-SONAR_POSTGRES_PASSWORD=sonar-password
+SONAR_POSTGRES_USER=${sonar_db_user}
+SONAR_POSTGRES_PASSWORD=${sonar_db_password}
 SONAR_JDBC_URL=jdbc:postgresql://postgres-sonar:5432/sonarqube
 
 # ─── SonarQube ───

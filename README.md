@@ -24,6 +24,12 @@ cd terraform
 cat > terraform.tfvars << 'EOF'
 repo_url   = "https://github.com/wazaglo/secure-pipeline.git"
 public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC..."
+
+# Database credentials (change these)
+dd_db_user       = "ddojo"
+dd_db_password   = "ddojo-password"
+sonar_db_user    = "sonar"
+sonar_db_password = "sonar-password"
 EOF
 
 terraform init

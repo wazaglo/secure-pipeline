@@ -102,6 +102,10 @@ resource "aws_instance" "devsecops" {
     repo_url          = var.repo_url
     dd_secret_key     = var.dd_secret_key
     dd_admin_password = var.dd_admin_password
+    dd_db_user        = var.dd_db_user
+    dd_db_password    = var.dd_db_password
+    sonar_db_user     = var.sonar_db_user
+    sonar_db_password = var.sonar_db_password
     public_ip         = aws_eip.devsecops.public_ip
   })
 

@@ -43,3 +43,29 @@ variable "sonar_admin_password" {
   sensitive   = true
   default     = "admin"
 }
+
+variable "dd_db_user" {
+  description = "DefectDojo PostgreSQL user"
+  type        = string
+  default     = "ddojo"
+}
+
+variable "dd_db_password" {
+  description = "DefectDojo PostgreSQL password"
+  type        = string
+  sensitive   = true
+  default     = "ddojo-password"
+}
+
+variable "sonar_db_user" {
+  description = "SonarQube PostgreSQL user"
+  type        = string
+  default     = "sonar"
+}
+
+variable "sonar_db_password" {
+  description = "SonarQube PostgreSQL password"
+  type        = string
+  sensitive   = true
+  default     = "sonar-password"
+}

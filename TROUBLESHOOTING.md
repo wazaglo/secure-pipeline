@@ -95,6 +95,104 @@ Common issues:
 
 Login at `http://<ip>:9000` with `admin / admin`. You will be prompted to change the password on first login.
 
+## Trivy Action Version Not Found in CI Pipeline
+
+**Symptom:** GitHub Actions log shows:
+```
+Error: Unable to resolve action `aquasecurity/trivy-action@0.19.0`, unable to find version `0.19.0`
+```
+
+**Cause:** The version `0.19.0` does not exist as a git tag in `aquasecurity/trivy-action`. All tags use a `v` prefix (e.g., `v0.36.0`).
+
+**Fix:** Update the version tag to include the `v` prefix and use a valid release:
+
+```yaml
+- uses: aquasecurity/trivy-action@v0.36.0
+```
+
+Note: The `***` in error output like `0.***9.0` is GitHub's secret masking, not the actual version string.
+
+## SonarQube Scan Fails — Project Not Found or Unauthorized
+
+**Symptom:** Pipeline log shows:
+```
+ERROR: You're not authorized to analyze this project or the project doesn't exist on SonarQube and you're not authorized to create it.
+```
+
+**Cause:** The SonarQube project `employee-api` either doesn't exist or the `SONAR_TOKEN` is missing/invalid.
+
+**Fix:**
+
+1. Create the project in SonarQube via API or web UI:
+   ```bash
+   curl -s -u 'admin:admin123' -X POST 'http://localhost:9000/api/projects/create' \
+     -d 'name=employee-api&project=employee-api'
+   ```
+
+2. Generate a user token:
+   ```bash
+   curl -s -u 'admin:admin123' -X POST 'http://localhost:9000/api/user_tokens/generate' \
+     -d 'name=github-actions&type=USER_TOKEN'
+   ```
+
+3. Set the GitHub secret `SONAR_TOKEN` to the returned token value (e.g., `squ_...`).
+
+**Note:** The SonarQube admin password may be non-default. In this deployment the password was set to `admin123`, matching the DefectDojo admin password.
+
+## DefectDojo Upload Fails — Engagement Doesn't Exist
+
+**Symptom:** Pipeline log shows:
+```
+["Engagement '***' doesn''t exist"]
+```
+
+**Cause:** The `DD_PRODUCT_ID` or `DD_ENGAGEMENT_ID` secrets point to IDs that don't exist in DefectDojo. No product or engagement was created.
+
+**Fix:**
+
+1. Create a product type if none exists:
+   ```bash
+   curl -s -X POST 'http://localhost:8080/api/v2/product_types/' \
+     -H "Authorization: Token $DD_API_KEY" \
+     -H 'Content-Type: application/json' \
+     -d '{"name":"default","description":"Default product type"}'
+   ```
+
+2. Create the product:
+   ```bash
+   curl -s -X POST 'http://localhost:8080/api/v2/products/' \
+     -H "Authorization: Token $DD_API_KEY" \
+     -H 'Content-Type: application/json' \
+     -d '{"name":"employee-api","description":"Employee Management API","prod_type":1}'
+   ```
+
+3. Create an engagement:
+   ```bash
+   curl -s -X POST 'http://localhost:8080/api/v2/engagements/' \
+     -H "Authorization: Token $DD_API_KEY" \
+     -H 'Content-Type: application/json' \
+     -d '{"name":"CI Pipeline Scan","description":"Automated scans from CI pipeline","product":1,"target_start":"2026-07-07","target_end":"2026-12-31","status":"In Progress"}'
+   ```
+
+4. Update GitHub secrets: `DD_PRODUCT_ID=1`, `DD_ENGAGEMENT_ID=1`, `DD_API_KEY=<token>`.
+
+## DefectDojo UI Loads Without CSS/JS (Broken Layout)
+
+**Symptom:** The DefectDojo web interface loads as plain HTML with no styling, missing images, and non-functional buttons. Browser console shows 404 errors for `/static/...` files.
+
+**Cause:** Django's `collectstatic` was never run (or failed due to permissions), so static files were not copied to `/app/static/`.
+
+**Fix:**
+
+```bash
+# Create the static directory and run collectstatic
+docker exec -u 0 secure-pipeline-defectdojo-1 bash -c '
+  mkdir -p /app/static && python3 manage.py collectstatic --noinput
+'
+```
+
+This copies ~10,000 static files (CSS, JS, images) to the correct location.
+
 ## Terraform Deployment Issues
 
 If `terraform apply` fails or the EC2 instance is not responding:

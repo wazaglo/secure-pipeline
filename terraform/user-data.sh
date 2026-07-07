@@ -22,6 +22,16 @@ usermod -aG docker ubuntu
 
 echo "[$(date)] Docker installed: $(docker --version)"
 
+# Add swap for SonarQube Elasticsearch on small instances
+if [ "$(free -m | awk '/^Swap:/ {print $2}')" -eq 0 ]; then
+  fallocate -l 1G /swapfile
+  chmod 600 /swapfile
+  mkswap /swapfile
+  swapon /swapfile
+  echo '/swapfile none swap sw 0 0' >> /etc/fstab
+  echo "[$(date)] 1GB swap file created"
+fi
+
 PROJECT_DIR="/opt/secure-pipeline"
 
 mkdir -p /opt
@@ -75,7 +85,7 @@ for i in $(seq 1 12); do
   dd_ok=false
   sq_ok=false
   curl -sf http://localhost:8080/api/v2/ > /dev/null 2>&1 && dd_ok=true
-  curl -sf http://localhost:9000/api/system/health > /dev/null 2>&1 && sq_ok=true
+  curl -sf http://localhost:9000/ > /dev/null 2>&1 && sq_ok=true
   if $dd_ok && $sq_ok; then
     echo "[$(date)] Both services healthy."
     break
@@ -85,7 +95,7 @@ done
 
 echo "[$(date)] Checking final status:"
 curl -sf http://localhost:8080/api/v2/ && echo "  DefectDojo: OK" || echo "  DefectDojo: FAIL"
-curl -sf http://localhost:9000/api/system/health && echo "  SonarQube: OK" || echo "  SonarQube: FAIL"
+curl -sf http://localhost:9000/ && echo "  SonarQube: OK" || echo "  SonarQube: FAIL"
 
 # ─────────────────────────────────────────────
 # DefectDojo Init: Create product + engagement

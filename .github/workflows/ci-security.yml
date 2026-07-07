@@ -39,7 +39,7 @@ jobs:
       # STAGE 1: Gitleaks — Secret Detection
       # ─────────────────────────────────────────────
       - name: Gitleaks — Secret Detection
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@v3
         continue-on-error: true
         with:
           config-path: .gitleaks.toml

@@ -12,6 +12,15 @@ Push code → GitHub Actions CI → Gitleaks + Bandit + Trivy + Syft + SonarQube
 
 ---
 
+## Prerequisites
+
+- **AWS account** — the Terraform script provisions a single EC2 instance (free-tier eligible, `t2.micro`)
+- **Terraform** installed (v1.3+)
+- **SSH key pair** — you'll need your public key ready for `terraform.tfvars`
+- **A GitHub repo** for this code (CI runs on push)
+
+---
+
 ## Deploy
 
 ### 1. Provision EC2
@@ -118,6 +127,7 @@ All reports are also saved as GitHub Actions artifacts.
 | `.trivy.yaml` | Trivy scanner configuration |
 | `.gitleaks.toml` | Gitleaks custom rules |
 | `sonar-project.properties` | SonarQube scanner configuration |
+| `.github/dependabot.yml` | Auto-opens PRs for dependency updates |
 
 ---
 

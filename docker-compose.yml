@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
 
   postgres-ddojo:
@@ -160,6 +158,7 @@ services:
       SONAR_JDBC_USERNAME: ${SONAR_POSTGRES_USER}
       SONAR_JDBC_PASSWORD: ${SONAR_POSTGRES_PASSWORD}
       SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: ${SONAR_ES_BOOTSTRAP_CHECKS_DISABLE}
+      ES_JAVA_OPTS: ${ES_JAVA_OPTS}
     ports:
       - "9000:9000"
     depends_on:

@@ -161,7 +161,7 @@ jobs:
       # STAGE 7: SonarQube Scan (if configured)
       # ─────────────────────────────────────────────
       - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v2
+        uses: SonarSource/sonarqube-scan-action@v8
         continue-on-error: true
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

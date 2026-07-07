@@ -60,7 +60,7 @@ SONAR_JDBC_URL=jdbc:postgresql://postgres-sonar:5432/sonarqube
 
 # ─── SonarQube ───
 SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
-SONAR_SEARCH_JAVAADDITIONALOPTS=-Xms256m -Xmx256m
+SONAR_SEARCH_JAVAOPTS=-Xms256m -Xmx256m
 ENVEOF
 
 echo "[$(date)] .env file created"

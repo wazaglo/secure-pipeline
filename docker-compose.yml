@@ -82,7 +82,7 @@ services:
       - devsecops
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-sf", "http://localhost:8081/"]
+      test: ["CMD", "python3", "-c", "import urllib.request; r=urllib.request.urlopen('http://localhost:8081/'); exit(0 if r.status==200 else 1)"]
       interval: 30s
       timeout: 10s
       retries: 3

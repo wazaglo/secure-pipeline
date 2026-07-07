@@ -57,7 +57,8 @@ services:
 
   defectdojo:
     image: defectdojo/defectdojo-django:2.28.1
-    command: ["bash", "-c", "gunicorn --bind 0.0.0.0:8080 --workers 3 --timeout 180 --access-logfile - --error-logfile - defectdojo.wsgi:application"]
+    entrypoint: ["/bin/bash", "-c"]
+    command: ["gunicorn --bind 0.0.0.0:8080 --workers 3 --timeout 180 --access-logfile - --error-logfile - defectdojo.wsgi:application"]
     environment:
       DD_DATABASE_URL: ${DD_DATABASE_URL}
       DD_SECRET_KEY: ${DD_SECRET_KEY}

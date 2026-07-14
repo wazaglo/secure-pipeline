@@ -106,7 +106,7 @@ jobs:
       # STAGE 4: Docker Build
       # ─────────────────────────────────────────────
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Build Docker Image
         uses: docker/build-push-action@v5

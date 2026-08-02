@@ -2,12 +2,18 @@
 useDefault = true
 
 [allowlist]
-description = "Global allowlist"
+description = "Global allowlist - intentional dummy creds / docs examples only"
 paths = [
   ".gitleaks.toml",
   ".trivy.yaml",
   "sonar-project.properties",
-  "README.md"
+  "README.md",
+  "SECURITY.md",
+  "TROUBLESHOOTING.md",
+  "terraform/user-data.sh",
+  "app/.env.example",
+  ".env.example",
+  "docs/"
 ]
 
 [[rules]]

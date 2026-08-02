@@ -1,0 +1,30 @@
+name: Gitleaks Secrets Gate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  scan:
+    name: Secret Detection (enforcement)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Gitleaks — Fail on any leak
+        uses: gitleaks/gitleaks-action@v3
+        env:
+          GITLEAKS_CONFIG: .gitleaks.toml

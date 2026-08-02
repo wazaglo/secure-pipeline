@@ -38,12 +38,22 @@ jobs:
       # ─────────────────────────────────────────────
       # STAGE 1: Gitleaks — Secret Detection
       # ─────────────────────────────────────────────
-      - name: Gitleaks — Secret Detection
-        uses: gitleaks/gitleaks-action@v3
+      # NOTE: gitleaks-action@v3 ignores `config-path`/`report-path` inputs.
+      # Run gitleaks directly so the JSON report reaches DefectDojo.
+      # Enforcement (fail the build) happens in the dedicated gitleaks.yml gate.
+      - name: Gitleaks — Secret Detection (JSON report)
         continue-on-error: true
-        with:
-          config-path: .gitleaks.toml
-          report-path: reports/gitleaks-report.json
+        run: |
+          mkdir -p reports
+          docker run --rm \
+            -v "${{ github.workspace }}":/repo \
+            -w /repo \
+            zricethezav/gitleaks:latest detect \
+            --source . \
+            --config .gitleaks.toml \
+            --report-format json \
+            --report-path reports/gitleaks-report.json \
+            --redact || echo "gitleaks found findings (report saved for DefectDojo)"
 
       - name: Upload Gitleaks Report
         uses: actions/upload-artifact@v4

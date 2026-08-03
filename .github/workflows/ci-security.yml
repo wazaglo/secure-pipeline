@@ -189,11 +189,12 @@ jobs:
       # ─────────────────────────────────────────────
       - name: Upload Results to DefectDojo
         if: env.DD_URL != '' && env.DD_API_KEY != ''
+        continue-on-error: true
         run: |
           upload() {
             local scan_type="$1" file="$2"
             if [ ! -f "$file" ]; then echo "Skip $file — not found"; return; fi
-            curl -s -X POST "$DD_URL/api/v2/import-scan/" \
+            curl -s -m 30 -X POST "$DD_URL/api/v2/import-scan/" \
               -H "Authorization: Token $DD_API_KEY" \
               -F "product=$DD_PRODUCT_ID" \
               -F "engagement=$DD_ENGAGEMENT_ID" \

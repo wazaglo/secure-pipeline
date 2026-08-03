@@ -218,7 +218,6 @@ jobs:
         continue-on-error: true
         with:
           sarif_file: reports/
-          category: trivy
 
       # ─────────────────────────────────────────────
       # STAGE 10: Summary

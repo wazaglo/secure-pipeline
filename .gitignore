@@ -26,3 +26,4 @@ reports/
 
 # Logs
 *.log
+docker-compose.override.yml

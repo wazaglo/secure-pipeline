@@ -6,7 +6,7 @@
 
 > **Author: Wisdom Azaglo**
 
-A **security-first CI/CD pipeline** that scans every push to `main` and blocks code that contains secrets or vulnerabilities — then aggregates everything into **DefectDojo** and **SonarQube** running on a single **AWS EC2** instance provisioned by **Terraform**.
+A **security-first CI/CD pipeline** that scans every push to `main` and blocks code that contains secrets or vulnerabilities, then aggregates everything into **DefectDojo** and **SonarQube** running on a single **AWS EC2** instance provisioned by **Terraform**.
 
 ```
 Push code → GitHub Actions CI → Gitleaks → Bandit → Trivy → Syft → SonarQube
@@ -14,7 +14,7 @@ Push code → GitHub Actions CI → Gitleaks → Bandit → Trivy → Syft → S
                      DefectDojo + SonarQube (AWS EC2, Terraform)
 ```
 
-Want to see what happens *after* it ships? The pipeline is monitored end-to-end by the companion project, **[monitor-secure-pipeline](https://github.com/wazaglo/monitor-secure-pipeline)** — a Grafana + Prometheus + Loki + Tempo observability platform.
+Want to see what happens *after* it ships? The pipeline is monitored end-to-end by the companion project, **[monitor-secure-pipeline](https://github.com/wazaglo/monitor-secure-pipeline)**: a Grafana + Prometheus + Loki + Tempo observability platform.
 
 ---
 
@@ -26,9 +26,9 @@ Want to see what happens *after* it ships? The pipeline is monitored end-to-end 
 1. A developer pushes to `main` (or opens a PR).
 2. **GitHub Actions** runs five security stages: Gitleaks (secrets) → Bandit (Python SAST) → Trivy (dependencies + container image) → Syft (SBOM) → SonarQube (code quality).
 3. Every stage that produces a report uploads it to **DefectDojo** (`:8080`) via its API, so all findings live in one dashboard. SonarQube (`:9000`) runs the quality gate.
-4. The dashboards run inside **Docker Compose** on a single **EC2 `t3.micro`** in a VPC, fronted by security groups and an IAM instance profile — all provisioned by **Terraform**.
+4. The dashboards run inside **Docker Compose** on a single **EC2 `t3.micro`** in a VPC, fronted by security groups and an IAM instance profile, all provisioned by **Terraform**.
 5. Only clean code passes the quality gate and reaches **CD deploy**.
-6. The dedicated **Gitleaks Secrets Gate** workflow (separate from the reporting pipeline) **fails the build on any leak** — secrets can never merge.
+6. The dedicated **Gitleaks Secrets Gate** workflow (separate from the reporting pipeline) **fails the build on any leak**. Secrets can never merge.
 
 > 📐 **Diagram source:** edit [`docs/architecture.drawio`](docs/architecture.drawio) in [draw.io](https://app.diagrams.net) (real AWS icon set). Render to SVG/PNG headlessly with:
 > ```bash
@@ -39,9 +39,9 @@ Want to see what happens *after* it ships? The pipeline is monitored end-to-end 
 
 ## Prerequisites
 
-- **AWS account** — the Terraform script provisions a single EC2 instance (free-tier eligible, `t3.micro`)
+- **AWS account**: the Terraform script provisions a single EC2 instance (free-tier eligible, `t3.micro`)
 - **Terraform** installed (v1.3+)
-- **SSH key pair** — you'll need your public key ready for `terraform.tfvars`
+- **SSH key pair**: you'll need your public key ready for `terraform.tfvars`
 - **A GitHub repo** for this code (CI runs on push)
 
 ---
@@ -101,7 +101,7 @@ Go to your repo → **Settings → Secrets and variables → Actions → New rep
 
 ### 4. Push Code
 
-Push to `main` — the CI pipeline runs automatically and uploads results to your EC2 DefectDojo.
+Push to `main`. The CI pipeline runs automatically and uploads results to your EC2 DefectDojo.
 
 ---
 
@@ -116,7 +116,7 @@ docker compose up -d
 
 DefectDojo → `http://localhost:8080` · SonarQube → `http://localhost:9000`
 
-> Default credentials are set in your `.env` / bootstrap. **SonarQube's initial default login is `admin` / `admin`** (you'll be prompted to change it on first login — it is *not* `admin123`).
+> Default credentials are set in your `.env` / bootstrap. **SonarQube's initial default login is `admin` / `admin`** (you'll be prompted to change it on first login, it is *not* `admin123`).
 
 ---
 
@@ -135,24 +135,24 @@ DefectDojo → `http://localhost:8080` · SonarQube → `http://localhost:9000`
 
 ### What each tool does
 
-**Gitleaks** — Scans git history and files for hardcoded secrets before they reach the repo. Configured via `.gitleaks.toml`. Two entry points:
-- **Enforcement** — [`.github/workflows/gitleaks.yml`](.github/workflows/gitleaks.yml): runs on every push/PR **plus a daily scheduled scan**, and **fails the build on any leak**. This is the gate.
-- **Reporting** — the stage in `ci-security.yml` runs Gitleaks directly (Docker) to produce the JSON report DefectDojo consumes. *(Note: `gitleaks-action@v3` ignores `config-path`/`report-path` inputs, so the report is generated with a direct `gitleaks detect` call.)*
+**Gitleaks**: Scans git history and files for hardcoded secrets before they reach the repo. Configured via `.gitleaks.toml`. Two entry points:
+- **Enforcement**: [`.github/workflows/gitleaks.yml`](.github/workflows/gitleaks.yml) runs on every push/PR **plus a daily scheduled scan**, and **fails the build on any leak**. This is the gate.
+- **Reporting**: the stage in `ci-security.yml` runs Gitleaks directly (Docker) to produce the JSON report DefectDojo consumes. *(Note: `gitleaks-action@v3` ignores `config-path`/`report-path` inputs, so the report is generated with a direct `gitleaks detect` call.)*
 
-**Bandit** — Python security linter (SAST). Scans source code for security bugs: SQL injection, unsafe `eval()`/`exec()`, hardcoded passwords, insecure file permissions. CI generates `reports/bandit-report.json` which goes to both DefectDojo and SonarQube.
+**Bandit**: Python security linter (SAST). Scans source code for security bugs: SQL injection, unsafe `eval()`/`exec()`, hardcoded passwords, insecure file permissions. CI generates `reports/bandit-report.json` which goes to both DefectDojo and SonarQube.
 
-**Trivy** — Three-in-one scanner: filesystem (vulns in `requirements.txt`), secrets (exposed keys), and container images (OS-level CVEs in Docker layers).
+**Trivy**: Three-in-one scanner: filesystem (vulns in `requirements.txt`), secrets (exposed keys), and container images (OS-level CVEs in Docker layers).
 
-**Syft** — Generates a CycloneDX Software Bill of Materials (SBOM) — complete inventory of every package. Essential for supply chain security.
+**Syft**: Generates a CycloneDX Software Bill of Materials (SBOM), a complete inventory of every package. Essential for supply chain security.
 
-**SonarQube** — Uses `sonar-project.properties` to know what to scan:
+**SonarQube**: Uses `sonar-project.properties` to know what to scan:
 - `sonar.projectKey=employee-api` → unique project ID
 - `sonar.sources=app/` → which directory to scan
 - `sonar.python.bandit.reportPaths=reports/bandit-report.json` → imports Bandit findings into SonarQube's security tab
 - `sonar.python.coverage.reportPaths=coverage.xml` → test coverage data
 - `sonar.exclusions=**/tests/**,**/__pycache__/**,**/.env*` → files to ignore
 
-**DefectDojo** — Aggregates results from all scanners into one dashboard. Instead of 5 separate reports, you see everything in one place.
+**DefectDojo**: Aggregates results from all scanners into one dashboard. Instead of 5 separate reports, you see everything in one place.
 
 All reports are also saved as GitHub Actions artifacts.
 
@@ -165,10 +165,10 @@ All reports are also saved as GitHub Actions artifacts.
 | `terraform/` | Provisions EC2 with DefectDojo + SonarQube |
 | `terraform/terraform.tfvars.example` | Template for your variables (copy → edit → use) |
 | `terraform/user-data.sh` | EC2 bootstrap: installs Docker, writes `.env`, starts the stack, creates the DefectDojo product/engagement |
-| `.github/workflows/ci-security.yml` | CI reporting pipeline — runs on push |
-| `.github/workflows/gitleaks.yml` | Gitleaks enforcement gate — fails on leaks |
+| `.github/workflows/ci-security.yml` | CI reporting pipeline: runs on push |
+| `.github/workflows/gitleaks.yml` | Gitleaks enforcement gate: fails on leaks |
 | `.github/workflows/cd-deploy.yml` | Optional deploy to target |
-| `app/` | Flask API — the scan target |
+| `app/` | Flask API: the scan target |
 | `docker-compose.yml` | DefectDojo + SonarQube stack (used on EC2 and locally) |
 | `docs/architecture.drawio` | Editable architecture diagram (draw.io, AWS icon set) |
 | `docs/architecture.svg` | Rendered diagram for this README |
@@ -181,8 +181,8 @@ All reports are also saved as GitHub Actions artifacts.
 
 ## Security
 
-- **Secrets never merge** — the Gitleaks gate is a required check; any leak fails the build.
-- **The repo itself is scanner-clean** — intentional dummy credentials in docs/examples are allowlisted in `.gitleaks.toml`, so real findings are never drowned out.
+- **Secrets never merge**: the Gitleaks gate is a required check; any leak fails the build.
+- **The repo itself is scanner-clean**: intentional dummy credentials in docs/examples are allowlisted in `.gitleaks.toml`, so real findings are never drowned out.
 - Dependabot keeps Python + Docker dependencies patched.
 - See [SECURITY.md](SECURITY.md) for responsible-disclosure details and best practices.
 
@@ -194,7 +194,7 @@ Common issues (DefectDojo login, SonarQube memory on small instances, report upl
 
 ## Monitoring
 
-This pipeline doesn't just run — it's **watched**. The companion project **[monitor-secure-pipeline](https://github.com/wazaglo/monitor-secure-pipeline)** instruments the `employee-api`, scrapes DefectDojo/SonarQube health + findings, and surfaces everything in Grafana with alerting. Together they form a complete Secure Observability Platform.
+This pipeline doesn't just run. It's **watched**. The companion project **[monitor-secure-pipeline](https://github.com/wazaglo/monitor-secure-pipeline)** instruments the `employee-api`, scrapes DefectDojo/SonarQube health + findings, and surfaces everything in Grafana with alerting. Together they form a complete Secure Observability Platform.
 
 ## Destroy
 

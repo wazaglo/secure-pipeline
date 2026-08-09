@@ -112,7 +112,7 @@ Error: Unable to resolve action `aquasecurity/trivy-action@0.19.0`, unable to fi
 
 Note: The `***` in error output like `0.***9.0` is GitHub's secret masking, not the actual version string.
 
-## SonarQube Scan Fails — Project Not Found or Unauthorized
+## SonarQube Scan Fails: Project Not Found or Unauthorized
 
 **Symptom:** Pipeline log shows:
 ```
@@ -139,7 +139,7 @@ ERROR: You're not authorized to analyze this project or the project doesn't exis
 
 **Note:** The SonarQube admin password may be non-default. In this deployment the password was set to `admin123`, matching the DefectDojo admin password.
 
-## DefectDojo Upload Fails — Engagement Doesn't Exist
+## DefectDojo Upload Fails: Engagement Doesn't Exist
 
 **Symptom:** Pipeline log shows:
 ```

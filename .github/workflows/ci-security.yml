@@ -56,7 +56,7 @@ jobs:
             --redact || echo "gitleaks found findings (report saved for DefectDojo)"
 
       - name: Upload Gitleaks Report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: gitleaks-report
           path: reports/gitleaks-report.json
@@ -72,7 +72,7 @@ jobs:
           bandit -r app/ -f json -o reports/bandit-report.json --exit-zero
 
       - name: Upload Bandit Report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: bandit-report
           path: reports/bandit-report.json
@@ -104,7 +104,7 @@ jobs:
           output: reports/trivy-fs-report.json
 
       - name: Upload Trivy FS Report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: trivy-fs-report
           path: |
@@ -116,10 +116,10 @@ jobs:
       # STAGE 4: Docker Build
       # ─────────────────────────────────────────────
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Build Docker Image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: app/
           load: true
@@ -149,7 +149,7 @@ jobs:
           output: reports/trivy-image-report.json
 
       - name: Upload Trivy Image Report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: trivy-image-report
           path: |
@@ -171,7 +171,7 @@ jobs:
       # STAGE 7: SonarQube Scan (if configured)
       # ─────────────────────────────────────────────
       - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v2
+        uses: SonarSource/sonarqube-scan-action@v8
         continue-on-error: true
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

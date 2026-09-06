@@ -36,12 +36,12 @@ jobs:
           python-version: '3.11'
 
       # ─────────────────────────────────────────────
-      # STAGE 1: Gitleaks — Secret Detection
+      # STAGE 1: Gitleaks - Secret Detection
       # ─────────────────────────────────────────────
       # NOTE: gitleaks-action@v3 ignores `config-path`/`report-path` inputs.
       # Run gitleaks directly so the JSON report reaches DefectDojo.
       # Enforcement (fail the build) happens in the dedicated gitleaks.yml gate.
-      - name: Gitleaks — Secret Detection (JSON report)
+      - name: Gitleaks - Secret Detection (JSON report)
         continue-on-error: true
         run: |
           mkdir -p reports
@@ -63,9 +63,9 @@ jobs:
           if-no-files-found: ignore
 
       # ─────────────────────────────────────────────
-      # STAGE 2: Bandit — Python SAST
+      # STAGE 2: Bandit - Python SAST
       # ─────────────────────────────────────────────
-      - name: Bandit — Python SAST
+      - name: Bandit - Python SAST
         run: |
           pip install bandit
           mkdir -p reports
@@ -79,9 +79,9 @@ jobs:
           if-no-files-found: ignore
 
       # ─────────────────────────────────────────────
-      # STAGE 3: Trivy FS — Dependency & Filesystem
+      # STAGE 3: Trivy FS - Dependency & Filesystem
       # ─────────────────────────────────────────────
-      - name: Trivy — Filesystem Scan
+      - name: Trivy - Filesystem Scan
         uses: aquasecurity/trivy-action@v0.36.0
         continue-on-error: true
         with:
@@ -92,7 +92,7 @@ jobs:
           format: sarif
           output: reports/trivy-fs-report.sarif
 
-      - name: Trivy — JSON Report (for DefectDojo)
+      - name: Trivy - JSON Report (for DefectDojo)
         uses: aquasecurity/trivy-action@v0.36.0
         continue-on-error: true
         with:
@@ -126,9 +126,9 @@ jobs:
           tags: ${{ env.IMAGE_NAME }}:${{ github.sha }},${{ env.IMAGE_NAME }}:latest
 
       # ─────────────────────────────────────────────
-      # STAGE 5: Trivy Image — Container Scan
+      # STAGE 5: Trivy Image - Container Scan
       # ─────────────────────────────────────────────
-      - name: Trivy — Container Image Scan
+      - name: Trivy - Container Image Scan
         uses: aquasecurity/trivy-action@v0.36.0
         continue-on-error: true
         with:
@@ -138,7 +138,7 @@ jobs:
           format: sarif
           output: reports/trivy-image-report.sarif
 
-      - name: Trivy — Image JSON Report (for DefectDojo)
+      - name: Trivy - Image JSON Report (for DefectDojo)
         uses: aquasecurity/trivy-action@v0.36.0
         continue-on-error: true
         with:
@@ -160,7 +160,7 @@ jobs:
       # ─────────────────────────────────────────────
       # STAGE 6: SBOM Generation (Syft)
       # ─────────────────────────────────────────────
-      - name: Syft — SBOM Generation
+      - name: Syft - SBOM Generation
         uses: anchore/sbom-action@v0
         with:
           image: ${{ env.IMAGE_NAME }}:${{ github.sha }}
@@ -193,7 +193,7 @@ jobs:
         run: |
           upload() {
             local scan_type="$1" file="$2"
-            if [ ! -f "$file" ]; then echo "Skip $file — not found"; return; fi
+            if [ ! -f "$file" ]; then echo "Skip $file - not found"; return; fi
             curl -s -m 30 -X POST "$DD_URL/api/v2/import-scan/" \
               -H "Authorization: Token $DD_API_KEY" \
               -F "product=$DD_PRODUCT_ID" \

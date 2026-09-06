@@ -17,23 +17,23 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
 
-        <mxCell id="13" value="GitHub Actions — CI Security Pipeline" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E8ECEF;strokeColor=#24292F;verticalAlign=top;fontStyle=1;fontSize=13;fontColor=#24292F;dashed=1;dashPattern=8 4;" vertex="1" parent="1">
+        <mxCell id="13" value="GitHub Actions - CI Security Pipeline" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E8ECEF;strokeColor=#24292F;verticalAlign=top;fontStyle=1;fontSize=13;fontColor=#24292F;dashed=1;dashPattern=8 4;" vertex="1" parent="1">
           <mxGeometry x="500" y="60" width="500" height="380" as="geometry" />
         </mxCell>
 
-        <mxCell id="14" value="1 · Gitleaks — Secrets" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F9FAFB;strokeColor=#374151;fontSize=12;" vertex="1" parent="1">
+        <mxCell id="14" value="1 · Gitleaks - Secrets" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F9FAFB;strokeColor=#374151;fontSize=12;" vertex="1" parent="1">
           <mxGeometry x="530" y="110" width="200" height="44" as="geometry" />
         </mxCell>
-        <mxCell id="15" value="2 · Bandit — Python SAST" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F9FAFB;strokeColor=#374151;fontSize=12;" vertex="1" parent="1">
+        <mxCell id="15" value="2 · Bandit - Python SAST" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F9FAFB;strokeColor=#374151;fontSize=12;" vertex="1" parent="1">
           <mxGeometry x="530" y="170" width="200" height="44" as="geometry" />
         </mxCell>
-        <mxCell id="16" value="3 · Trivy — Deps + Image" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F9FAFB;strokeColor=#374151;fontSize=12;" vertex="1" parent="1">
+        <mxCell id="16" value="3 · Trivy - Deps + Image" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F9FAFB;strokeColor=#374151;fontSize=12;" vertex="1" parent="1">
           <mxGeometry x="530" y="230" width="200" height="44" as="geometry" />
         </mxCell>
-        <mxCell id="17" value="4 · Syft — SBOM" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F9FAFB;strokeColor=#374151;fontSize=12;" vertex="1" parent="1">
+        <mxCell id="17" value="4 · Syft - SBOM" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F9FAFB;strokeColor=#374151;fontSize=12;" vertex="1" parent="1">
           <mxGeometry x="530" y="290" width="200" height="44" as="geometry" />
         </mxCell>
-        <mxCell id="18" value="5 · SonarQube — Quality Gate" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F9FAFB;strokeColor=#374151;fontSize=12;" vertex="1" parent="1">
+        <mxCell id="18" value="5 · SonarQube - Quality Gate" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F9FAFB;strokeColor=#374151;fontSize=12;" vertex="1" parent="1">
           <mxGeometry x="530" y="350" width="200" height="44" as="geometry" />
         </mxCell>
 
@@ -53,15 +53,15 @@
           <mxGeometry x="1040" y="60" width="640" height="640" as="geometry" />
         </mxCell>
 
-        <mxCell id="21" value="Region — US East (N. Virginia)" style="shape=mxgraph.aws4.region;html=1;whiteSpace=wrap;fillColor=none;strokeColor=#232F3E;verticalAlign=top;fontColor=#232F3E;fontSize=12;" vertex="1" parent="1">
+        <mxCell id="21" value="Region - US East (N. Virginia)" style="shape=mxgraph.aws4.region;html=1;whiteSpace=wrap;fillColor=none;strokeColor=#232F3E;verticalAlign=top;fontColor=#232F3E;fontSize=12;" vertex="1" parent="1">
           <mxGeometry x="1070" y="110" width="580" height="560" as="geometry" />
         </mxCell>
 
-        <mxCell id="22" value="VPC — 10.0.0.0/16" style="shape=mxgraph.aws4.vpc;html=1;whiteSpace=wrap;fillColor=none;strokeColor=#248814;verticalAlign=top;fontColor=#248814;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+        <mxCell id="22" value="VPC - 10.0.0.0/16" style="shape=mxgraph.aws4.vpc;html=1;whiteSpace=wrap;fillColor=none;strokeColor=#248814;verticalAlign=top;fontColor=#248814;fontStyle=1;fontSize=12;" vertex="1" parent="1">
           <mxGeometry x="1100" y="160" width="520" height="470" as="geometry" />
         </mxCell>
 
-        <mxCell id="23" value="EC2 Instance — t3.micro&#xa;Docker Compose stack" style="shape=mxgraph.aws4.ec2;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=#232F3E;verticalAlign=top;fontColor=#232F3E;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+        <mxCell id="23" value="EC2 Instance - t3.micro&#xa;Docker Compose stack" style="shape=mxgraph.aws4.ec2;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=#232F3E;verticalAlign=top;fontColor=#232F3E;fontStyle=1;fontSize=12;" vertex="1" parent="1">
           <mxGeometry x="1130" y="200" width="460" height="290" as="geometry" />
         </mxCell>
 
